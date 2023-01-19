@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 class StudentData:
 
     def __init__(self, path):
@@ -24,4 +25,10 @@ class StudentData:
     def pie_chart_wights(self):
         plt.pie(self.rubric_weights, radius=1, labels=self.rubric, autopct='%1.2f%%')
         plt.title('Weights distribution for students grades ')
-        plt.savefig()
+        plt.savefig('charts/rubric_weight.png', dpi=300, bbox_inches='tight')
+
+    def student_grades(self, student_name):
+        new_df = self.std_df
+        new_df = new_df.set_index("Names")
+        return list(new_df.loc[student_name])[2:]
+
