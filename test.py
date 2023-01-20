@@ -15,3 +15,5 @@ print(std.get_rubric_weights())
 print(std.missed_act(student_name))
 
 std.bar_chart(student_name)
+
+std.student_rank_chart(student_name)

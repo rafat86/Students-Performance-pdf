@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 class StudentData:
 
     def __init__(self, path):
@@ -55,3 +56,28 @@ class StudentData:
         ax.legend()
         fig.tight_layout()
         plt.savefig('charts/'+student_name+'.png', dpi=300, bbox_inches='tight')
+
+    def student_rank_chart(self, student_name):
+        class_grades_df = self.std_df[["Names", "Total Grade"]].sort_values(by="Total Grade").drop(0)
+        student_total = self.student_grades(student_name)[self.rubric_length-1]
+        student_rank = list(class_grades_df["Total Grade"]).index(student_total)
+        student_total_list = []
+        student_names_list = []
+        for i in range(len(list(class_grades_df["Total Grade"]))):
+            if i == student_rank:
+                student_total_list.append(student_total)
+                student_names_list.append("You")
+            else:
+                student_total_list.append(0)
+                student_names_list.append(" ")
+
+        fig, ax = plt.subplots()
+        width = 0.3
+        ax.bar(class_grades_df["Names"], class_grades_df["Total Grade"], width)
+        ax.bar(class_grades_df["Names"], student_total_list, width)
+        ax.set_ylabel('Grades')
+        ax.set_title('Whole Class')
+        ax.set_xticks(class_grades_df["Names"])
+        ax.set_xticklabels(student_names_list, rotation='horizontal')
+        fig.tight_layout()
+        plt.savefig('charts/'+student_name+'rank.png', dpi=300, bbox_inches='tight')
