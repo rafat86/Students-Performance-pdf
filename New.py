@@ -1,6 +1,36 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from fpdf import FPDF
+
+title = 'Course Performance Report'
+
+
+class PDF(FPDF):
+
+    def header(self):
+        # font
+        self.set_font('helvetica', 'B', 15)
+        # Logo
+        self.image('ppulogo.png', 10, 8, 25)
+        # Calculate width of title and position
+        title_w = self.get_string_width(title) + 6
+        doc_w = self.w
+        self.set_x((doc_w - title_w) / 2)
+        # Title
+        self.cell(title_w, 10, title, ln=1, align='C')
+        # Line break
+        self.ln(15)
+
+    def footer(self):
+        # Set position of the footer
+        self.set_y(-15)
+        # set font
+        self.set_font('helvetica', 'I', 8)
+        # Set font color grey
+        self.set_text_color(169, 169, 169)
+        # Page number
+        self.cell(0, 10, f'Page {self.page_no()}', align='C')
 
 
 class StudentData:
@@ -23,6 +53,10 @@ class StudentData:
     def get_rubric_weights(self):
         return self.rubric_weights
 
+    def students_names(self):
+        names = self.std_df.iloc[1:, 1]
+        return names
+
     def pie_chart_wights(self):
         plt.pie(self.rubric_weights, radius=1, labels=self.rubric, autopct='%1.2f%%')
         plt.title('Weights distribution for students grades ')
@@ -35,7 +69,6 @@ class StudentData:
 
     def missed_act(self, student_name):
         student_act = self.student_grades(student_name)
-        print("You Missed This Activity/Activities:")
         for i in range(0, self.rubric_length-1):
             if pd.isnull(student_act[i]) == True:
                 print("\n", self.rubric[i])
@@ -81,3 +114,39 @@ class StudentData:
         ax.set_xticklabels(student_names_list, rotation='horizontal')
         fig.tight_layout()
         plt.savefig('charts/'+student_name+'rank.png', dpi=300, bbox_inches='tight')
+
+    def pdf_report(self, student_name):
+        pie_chart_file = 'charts/rubric_weight.png'
+        bar_chart_file = 'charts/'+student_name+'.png'
+        student_rank_chart_file = 'charts/'+student_name+'rank.png'
+        report_name = student_name + '.pdf'
+        student_activities_marks = print(self.student_grades(student_name))
+        student_missed_activities = print(self.missed_act(student_name))
+        self.bar_chart(student_name)
+        self.student_rank_chart(student_name)
+
+# Preparing the properties of PDF Report File
+        pdf_report = PDF('P', 'mm', 'A4')
+        pdf_report.set_auto_page_break(auto=True, margin=15)
+        pdf_report.add_page()
+        pdf_report.set_font('helvetica', 'BI', 14)
+
+        pdf_report.cell(10, 10, "Student Name :" + student_name, ln=True)
+        pdf_report.cell(10, 10, 'Course activities', ln=True)
+        pdf_report.cell(10, 10, str(student_activities_marks), ln=True)
+        pdf_report.cell(10, 10, 'Your grade in each of the course activities', ln=True)
+        pdf_report.cell(10, 10, str(student_activities_marks), ln=True)
+
+        pdf_report.cell(10, 10, 'You missed the following activity/activities', ln=True)
+        pdf_report.cell(10, 10, str(student_missed_activities), ln=True)
+
+        pdf_report.ln(50)
+        pdf_report.image(pie_chart_file, 50, 150, 120)
+
+        pdf_report.add_page()
+        pdf_report.image(bar_chart_file, 50, 50, 120)
+
+        pdf_report.ln(100)
+        pdf_report.image(student_rank_chart_file, 50, 200, 120)
+
+        pdf_report.output(report_name)
