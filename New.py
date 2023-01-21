@@ -69,9 +69,11 @@ class StudentData:
 
     def missed_act(self, student_name):
         student_act = self.student_grades(student_name)
+        student_missed_list=[]
         for i in range(0, self.rubric_length-1):
             if pd.isnull(student_act[i]) == True:
-                print("\n", self.rubric[i])
+                student_missed_list.append((self.rubric[i]))
+        return student_missed_list
 
     def bar_chart(self, student_name):
         labels = self.std_df.iloc[:, 3:].columns.tolist()
@@ -120,8 +122,10 @@ class StudentData:
         bar_chart_file = 'charts/'+student_name+'.png'
         student_rank_chart_file = 'charts/'+student_name+'rank.png'
         report_name = student_name + '.pdf'
-        student_activities_marks = print(self.student_grades(student_name))
-        student_missed_activities = print(self.missed_act(student_name))
+        course_rubrics = self.get_rubrics()
+        course_activities_marks = self.get_rubric_weights()
+        student_activities_marks = self.student_grades(student_name)
+        student_missed_activities = self.missed_act(student_name)
         self.bar_chart(student_name)
         self.student_rank_chart(student_name)
 
@@ -131,12 +135,14 @@ class StudentData:
         pdf_report.add_page()
         pdf_report.set_font('helvetica', 'BI', 14)
 
+# Preparing the contents of PDF Report File
         pdf_report.cell(10, 10, "Student Name :" + student_name, ln=True)
         pdf_report.cell(10, 10, 'Course activities', ln=True)
+        pdf_report.cell(10, 10, str(course_rubrics), ln=True)
+        pdf_report.cell(10, 10, 'Course activities Weights', ln=True)
+        pdf_report.cell(10, 10, str(course_activities_marks), ln=True)
+        pdf_report.cell(10, 10, 'Your grade in each of the course activities and your Total Grade', ln=True)
         pdf_report.cell(10, 10, str(student_activities_marks), ln=True)
-        pdf_report.cell(10, 10, 'Your grade in each of the course activities', ln=True)
-        pdf_report.cell(10, 10, str(student_activities_marks), ln=True)
-
         pdf_report.cell(10, 10, 'You missed the following activity/activities', ln=True)
         pdf_report.cell(10, 10, str(student_missed_activities), ln=True)
 
