@@ -1,9 +1,15 @@
+"""
+Final Project: Student PDF Certificate Generation Python Code Using Excel file
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from fpdf import FPDF
 
 title = 'Course Performance Report'
+
+# Inherits fpdf class to modify header and footer for pdf Report
 
 
 class PDF(FPDF):
@@ -32,9 +38,10 @@ class PDF(FPDF):
         # Page number
         self.cell(0, 10, f'Page {self.page_no()}', align='C')
 
+# Creating a class containing all methods used in generating PDF Report
+
 
 class StudentData:
-
     def __init__(self, path):
         self.std_df = pd.read_excel(path)
 
@@ -57,24 +64,28 @@ class StudentData:
         names = self.std_df.iloc[1:, 1]
         return names
 
+# Creating a class method to plot and save a pie chart image for the activities weights (same for all students)
     def pie_chart_wights(self):
         plt.pie(self.rubric_weights, radius=1, labels=self.rubric, autopct='%1.2f%%')
         plt.title('Weights distribution for students grades ')
         plt.savefig('charts/rubric_weight.png', dpi=300, bbox_inches='tight')
 
+# Creating a class method to make a list of grades for a student
     def student_grades(self, student_name):
         new_df = self.std_df
         new_df = new_df.set_index("Names")
         return list(new_df.loc[student_name])[2:]
 
+# Creating a class method to make a list of un submitted activities
     def missed_act(self, student_name):
         student_act = self.student_grades(student_name)
-        student_missed_list=[]
+        student_missed_list = []
         for i in range(0, self.rubric_length-1):
-            if pd.isnull(student_act[i]) == True:
+            if pd.isnull(student_act[i]) is True:
                 student_missed_list.append((self.rubric[i]))
         return student_missed_list
 
+# Creating a class method to plot and save a bar chart showing the activities grades for a student
     def bar_chart(self, student_name):
         labels = self.std_df.iloc[:, 3:].columns.tolist()
         x = np.arange(len(labels))
@@ -85,13 +96,14 @@ class StudentData:
         ax.bar(x, rubric_weight, width, label="Full Grade", color="red")
         ax.bar(x, student_marks, width, label="Your Grade", color="blue")
         ax.set_ylabel('Grades')
-        ax.set_title('Activities')
+        ax.set_title('Activities Grades')
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation='horizontal')
         ax.legend()
         fig.tight_layout()
         plt.savefig('charts/'+student_name+'.png', dpi=300, bbox_inches='tight')
 
+# Creating class method to plot and save a bar chat image for the rank of the student to whole class
     def student_rank_chart(self, student_name):
         class_grades_df = self.std_df[["Names", "Total Grade"]].sort_values(by="Total Grade").drop(0)
         student_total = self.student_grades(student_name)[self.rubric_length-1]
@@ -111,13 +123,15 @@ class StudentData:
         ax.bar(class_grades_df["Names"], class_grades_df["Total Grade"], width)
         ax.bar(class_grades_df["Names"], student_total_list, width)
         ax.set_ylabel('Grades')
-        ax.set_title('Whole Class')
+        ax.set_title('Whole Class Ranking')
         ax.set_xticks(class_grades_df["Names"])
         ax.set_xticklabels(student_names_list, rotation='horizontal')
         fig.tight_layout()
         plt.savefig('charts/'+student_name+'rank.png', dpi=300, bbox_inches='tight')
 
+# Creating a class method to generate PDF containing the report contents
     def pdf_report(self, student_name):
+        self.pie_chart_wights()
         pie_chart_file = 'charts/rubric_weight.png'
         bar_chart_file = 'charts/'+student_name+'.png'
         student_rank_chart_file = 'charts/'+student_name+'rank.png'
@@ -128,6 +142,7 @@ class StudentData:
         student_missed_activities = self.missed_act(student_name)
         self.bar_chart(student_name)
         self.student_rank_chart(student_name)
+
 
 # Preparing the properties of PDF Report File
         pdf_report = PDF('P', 'mm', 'A4')
@@ -153,6 +168,6 @@ class StudentData:
         pdf_report.image(bar_chart_file, 50, 50, 120)
 
         pdf_report.ln(100)
-        pdf_report.image(student_rank_chart_file, 50, 200, 120)
+        pdf_report.image(student_rank_chart_file, 40, 150, 150)
 
         pdf_report.output(report_name)
