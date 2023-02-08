@@ -1,7 +1,7 @@
-from New import StudentData as sd
+from main import StudentData as Sd
 
 path = "studentsgrades.xlsx"
-std = sd(path)
+std = Sd(path)
 
 student_names_df = std.students_names()
 
@@ -19,5 +19,4 @@ elif reader_choice == 2:
     count_row = student_names_df.shape[0]  # Gives number of rows
     for i in range(0, count_row):
         student_name = student_names_df.iloc[i]
-        i = i+1
         std.pdf_report(student_name)
